@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 interface SearchFormProps {
   onSearch: (params: {
@@ -9,28 +9,13 @@ interface SearchFormProps {
     monthsAhead: number;
     excludeBasicEconomy: boolean;
   }) => void;
-  initialValues?: {
-    origin?: string;
-    maxBudget?: number;
-    monthsAhead?: number;
-    excludeBasicEconomy?: boolean;
-  };
 }
 
-export default function SearchForm({ onSearch, initialValues }: SearchFormProps) {
-  const [origin, setOrigin] = useState(initialValues?.origin || '');
-  const [maxBudget, setMaxBudget] = useState(initialValues?.maxBudget?.toString() || '');
-  const [monthsAhead, setMonthsAhead] = useState(initialValues?.monthsAhead || 3);
-  const [excludeBasicEconomy, setExcludeBasicEconomy] = useState(initialValues?.excludeBasicEconomy || false);
-
-  useEffect(() => {
-    if (initialValues) {
-      setOrigin(initialValues.origin || '');
-      setMaxBudget(initialValues.maxBudget?.toString() || '');
-      setMonthsAhead(initialValues.monthsAhead || 3);
-      setExcludeBasicEconomy(initialValues.excludeBasicEconomy || false);
-    }
-  }, [initialValues]);
+export default function SearchForm({ onSearch }: SearchFormProps) {
+  const [origin, setOrigin] = useState('');
+  const [maxBudget, setMaxBudget] = useState('');
+  const [monthsAhead, setMonthsAhead] = useState(3);
+  const [excludeBasicEconomy, setExcludeBasicEconomy] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

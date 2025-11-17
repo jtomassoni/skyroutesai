@@ -158,10 +158,83 @@ export default function Home() {
 
           {/* Results */}
           {results && (
-            <div className="bg-white rounded-xl shadow-lg p-6 md:p-8">
+            <div className="bg-white rounded-xl shadow-lg p-6 md:p-8 mb-8">
               <FlightResults results={results} origin={searchOrigin} />
             </div>
           )}
+
+          {/* FAQ Section */}
+          <div className="bg-white rounded-xl shadow-lg p-6 md:p-8">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
+              Frequently Asked Questions
+            </h2>
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-lg md:text-xl font-semibold text-gray-800 mb-2">
+                  How does SkyRoutesAI find flights?
+                </h3>
+                <p className="text-gray-600">
+                  SkyRoutesAI searches multiple flight APIs including Amadeus, Kiwi, and Skyscanner to find flights that match your budget and departure city. We show you destinations you can reach within your budget over the next 1-6 months.
+                </p>
+              </div>
+              <div>
+                <h3 className="text-lg md:text-xl font-semibold text-gray-800 mb-2">
+                  Where can I fly for $500 from New York?
+                </h3>
+                <p className="text-gray-600">
+                  Simply enter your departure city (or airport code like "JFK" or "NYC"), set your budget to $500, choose your search window (1-6 months), and click search. We'll show you all destinations within your budget.
+                </p>
+              </div>
+              <div>
+                <h3 className="text-lg md:text-xl font-semibold text-gray-800 mb-2">
+                  Are the prices shown final?
+                </h3>
+                <p className="text-gray-600">
+                  Prices shown are base fares. Final totals with taxes and fees may exceed your budget. We're working on showing full cost breakdowns. Always check the airline's website for the final price before booking.
+                </p>
+              </div>
+              <div>
+                <h3 className="text-lg md:text-xl font-semibold text-gray-800 mb-2">
+                  What does "Exclude Basic Economy" mean?
+                </h3>
+                <p className="text-gray-600">
+                  Basic Economy fares often have restrictions like no seat selection, no carry-on bags, and no changes or refunds. When enabled, this option filters out basic economy fares to show only standard economy and above.
+                </p>
+              </div>
+              <div>
+                <h3 className="text-lg md:text-xl font-semibold text-gray-800 mb-2">
+                  Do I need to create an account?
+                </h3>
+                <p className="text-gray-600">
+                  No account required! SkyRoutesAI works entirely in your browser. Your saved searches are stored locally on your device using localStorage.
+                </p>
+              </div>
+              <div>
+                <h3 className="text-lg md:text-xl font-semibold text-gray-800 mb-2">
+                  How do I book a flight?
+                </h3>
+                <p className="text-gray-600">
+                  Click the "Book on airline" link for any flight result. This will take you directly to the airline's website where you can complete your booking. We don't handle bookings or payments.
+                </p>
+              </div>
+              <div>
+                <h3 className="text-lg md:text-xl font-semibold text-gray-800 mb-2">
+                  Why do I see ads during the search?
+                </h3>
+                <p className="text-gray-600">
+                  SkyRoutesAI is free to use and ad-supported. The 10-30 second loading screen helps keep the service free for everyone. You'll see your results after the loading completes.
+                </p>
+              </div>
+              <div>
+                <h3 className="text-lg md:text-xl font-semibold text-gray-800 mb-2">
+                  Can I search for cheap flights from any city?
+                </h3>
+                <p className="text-gray-600">
+                  Yes! Enter any departure city or airport code (like "LAX", "LHR", "CDG") and we'll search for flights from that location. The service works worldwide.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </main>

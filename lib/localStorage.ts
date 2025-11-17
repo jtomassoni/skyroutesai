@@ -66,15 +66,3 @@ export function deleteSavedSearch(id: string): void {
   }
 }
 
-export function clearAllSavedSearches(): void {
-  if (typeof window === 'undefined') {
-    return;
-  }
-
-  try {
-    localStorage.removeItem(STORAGE_KEY);
-  } catch (error) {
-    console.error('Error clearing saved searches:', error);
-  }
-}
-
