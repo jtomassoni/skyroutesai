@@ -8,7 +8,7 @@ export interface FlightResult {
   airline: string;
   fareClass?: string;
   bookingUrl: string;
-  source: 'amadeus' | 'kiwi' | 'skyscanner' | 'mock';
+  source: 'amadeus' | 'mock';
   fareClassNote?: string;
 }
 
@@ -224,123 +224,18 @@ async function searchAmadeus(
   }
 }
 
-// Kiwi API implementation
-async function searchKiwi(params: SearchParams): Promise<FlightResult[] | null> {
-  const apiKey = process.env.KIWI_API_KEY;
-
-  if (!apiKey) {
-    return null;
-  }
-
-  try {
-    // First, get location code for origin
-    const locationUrl = new URL('https://api.tequila.kiwi.com/locations/query');
-    locationUrl.searchParams.set('term', params.origin);
-    locationUrl.searchParams.set('location_types', 'airport');
-
-    const locationResponse = await fetch(locationUrl.toString(), {
-      headers: {
-        apikey: apiKey,
-      },
-    });
-
-    if (!locationResponse.ok) {
-      return null;
-    }
-
-    const locationData = await locationResponse.json();
-    if (!locationData.locations || locationData.locations.length === 0) {
-      return null;
-    }
-
-    const originCode = locationData.locations[0].code;
-    const today = new Date();
-    const maxDate = new Date(today);
-    maxDate.setMonth(today.getMonth() + params.monthsAhead);
-
-    // Search for flights
-    const searchUrl = new URL('https://api.tequila.kiwi.com/v2/search');
-    searchUrl.searchParams.set('fly_from', originCode);
-    searchUrl.searchParams.set('date_from', today.toISOString().split('T')[0]);
-    searchUrl.searchParams.set('date_to', maxDate.toISOString().split('T')[0]);
-    searchUrl.searchParams.set('price_to', params.maxBudget.toString());
-    searchUrl.searchParams.set('limit', '20');
-    searchUrl.searchParams.set('curr', 'USD');
-
-    const searchResponse = await fetch(searchUrl.toString(), {
-      headers: {
-        apikey: apiKey,
-      },
-    });
-
-    if (!searchResponse.ok) {
-      return null;
-    }
-
-    const searchData = await searchResponse.json();
-    const results: FlightResult[] = [];
-
-    if (searchData.data) {
-      for (const flight of searchData.data) {
-        results.push({
-          destination: flight.cityTo || flight.flyTo,
-          destinationCode: flight.flyTo,
-          price: flight.price,
-          currency: 'USD',
-          date: flight.local_departure?.split('T')[0] || today.toISOString().split('T')[0],
-          airline: flight.airlines?.[0] || 'Unknown',
-          fareClass: flight.fare?.name || undefined,
-          bookingUrl: flight.deep_link || `https://www.kiwi.com/deep?from=${originCode}&to=${flight.flyTo}`,
-          source: 'kiwi',
-        });
-      }
-    }
-
-    return filterBasicEconomy(results, params.excludeBasicEconomy);
-  } catch (error) {
-    console.error('Kiwi API error:', error);
-    return null;
-  }
-}
-
-// Skyscanner API implementation (simplified)
-async function searchSkyscanner(
-  params: SearchParams
-): Promise<FlightResult[] | null> {
-  const apiKey = process.env.SKYSCANNER_API_KEY;
-
-  if (!apiKey) {
-    return null;
-  }
-
-  // Skyscanner API is more complex and requires additional setup
-  // For MVP, we'll return null and fall back to mock data
-  // This can be implemented in a future phase
-  return null;
-}
-
-// Main search function with fallback chain
+// Main search function with fallback
 export async function searchFlights(
   params: SearchParams
 ): Promise<FlightResult[]> {
-  // Try APIs in priority order
-  let results = await searchAmadeus(params);
+  // Try Amadeus API first
+  const results = await searchAmadeus(params);
   if (results && results.length > 0) {
     return results;
   }
 
-  results = await searchKiwi(params);
-  if (results && results.length > 0) {
-    return results;
-  }
-
-  results = await searchSkyscanner(params);
-  if (results && results.length > 0) {
-    return results;
-  }
-
-  // Fallback to mock data
-  console.warn('All APIs failed, using mock data');
+  // Fallback to mock data if Amadeus fails
+  console.warn('Amadeus API failed, using mock data');
   return generateMockData(params);
 }
 

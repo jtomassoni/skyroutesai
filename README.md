@@ -42,10 +42,9 @@ Find flights within your budget from your departure city over the next 1-6 month
 
 ## API Keys
 
-This project uses multiple flight APIs with fallback support:
-- Amadeus Self-Service API (recommended)
-- Kiwi (Tequila) API
-- Skyscanner via RapidAPI
+This project uses the Amadeus Self-Service API for real flight data, with mock data as a fallback:
+- Amadeus Self-Service API (primary)
+- Mock data (fallback if API fails)
 
 See `docs/flight-apis.md` for detailed setup instructions.
 

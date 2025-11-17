@@ -41,7 +41,7 @@ SkyRoutesAI answers: "Where can I fly from my departure city within my budget ov
 - [x] Create docs/flight-apis.md with full API key instructions
 - [x] Implement lib/searchFlights.ts:
   - [x] Accept { origin, maxBudget, monthsAhead, excludeBasicEconomy }
-  - [x] Call Amadeus → Kiwi → Skyscanner → mock fallback
+  - [x] Call Amadeus → mock fallback
   - [x] Filter out basic economy fares
   - [x] Show notes when fare class missing
 - [x] Create /api/search-flights route with error handling

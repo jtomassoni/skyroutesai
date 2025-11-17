@@ -1,17 +1,15 @@
 # Flight APIs Integration Guide
 
-SkyRoutesAI uses multiple flight APIs with fallback support to ensure reliability. This document provides instructions for obtaining API keys and configuring each provider.
+SkyRoutesAI uses the Amadeus Self-Service API for real flight data, with mock data as a fallback. This document provides instructions for obtaining API keys and configuring the provider.
 
-## API Priority Order
+## API Setup
 
-1. **Amadeus Self-Service API** (Recommended - Primary)
-2. **Kiwi (Tequila) API** (Fallback 1)
-3. **Skyscanner via RapidAPI** (Fallback 2)
-4. **Mock Data** (Final fallback if all APIs fail)
+1. **Amadeus Self-Service API** (Primary)
+2. **Mock Data** (Fallback if API fails or keys are missing)
 
 ---
 
-## 1. Amadeus Self-Service API
+## Amadeus Self-Service API
 
 ### Overview
 - **Free Tier:** ~2,000 calls/month
@@ -62,92 +60,7 @@ SkyRoutesAI uses multiple flight APIs with fallback support to ensure reliabilit
 
 ---
 
-## 2. Kiwi (Tequila) API
-
-### Overview
-- **Free Tier:** ~50-100 daily calls
-- **Best for:** Backup option, good for European flights
-- **Documentation:** https://tequila.kiwi.com/portal/getting-started
-
-### Getting Started
-
-1. **Create Account:**
-   - Go to https://tequila.kiwi.com/portal
-   - Click "Sign Up" for free account
-   - Complete registration
-
-2. **Get API Key:**
-   - After logging in, navigate to "API Keys"
-   - Generate a new API key
-   - Copy the key (starts with `your_api_key_`)
-
-3. **Set Environment Variable:**
-   ```bash
-   KIWI_API_KEY="your_api_key_here"
-   ```
-
-### API Endpoints Used
-- **Locations:** `/locations/query`
-- **Search:** `/v2/search`
-
-### Rate Limits
-- Free tier: ~50-100 calls/day
-- Rate limiting: Varies by endpoint
-- Check dashboard for current limits
-
-### Notes
-- Simple API key authentication (no OAuth)
-- Good for European and budget airline coverage
-- Requires location code conversion
-
----
-
-## 3. Skyscanner via RapidAPI
-
-### Overview
-- **Free Tier:** Limited (varies by plan)
-- **Best for:** Additional fallback, good coverage
-- **Documentation:** https://rapidapi.com/skyscanner/api/skyscanner-flight-search
-
-### Getting Started
-
-1. **Create RapidAPI Account:**
-   - Go to https://rapidapi.com
-   - Sign up for a free account
-   - Verify your email
-
-2. **Subscribe to Skyscanner API:**
-   - Search for "Skyscanner Flight Search" in RapidAPI marketplace
-   - Click "Subscribe to Test" (free tier)
-   - Review pricing tiers
-
-3. **Get API Key:**
-   - After subscribing, go to your dashboard
-   - Find "Skyscanner Flight Search" in "My Apps"
-   - Copy your RapidAPI key (X-RapidAPI-Key)
-
-4. **Set Environment Variable:**
-   ```bash
-   SKYSCANNER_API_KEY="your_rapidapi_key_here"
-   ```
-
-### API Endpoints Used
-- **Places:** `/browsequotes/v1.0/{country}/{currency}/{locale}/{originPlace}/{destinationPlace}/{outboundPartialDate}`
-- **Browse Quotes:** Various endpoints based on search type
-
-### Rate Limits
-- Free tier: Limited (check RapidAPI dashboard)
-- Rate limiting: Varies by subscription
-- Monitor usage in RapidAPI dashboard
-
-### Notes
-- Requires RapidAPI key in headers
-- Good global coverage
-- May require additional setup for production use
-
----
-
-## 4. Mock Data Fallback
+## Mock Data Fallback
 
 If all APIs fail, the system falls back to mock data with realistic structure. This ensures the application remains functional during development and API outages.
 
@@ -166,8 +79,8 @@ If all APIs fail, the system falls back to mock data with realistic structure. T
 ```
 
 ### When Mock Data is Used
-- All API keys are missing
-- All API calls fail
+- API keys are missing
+- API calls fail
 - Rate limits exceeded
 - Network errors
 
@@ -178,15 +91,9 @@ If all APIs fail, the system falls back to mock data with realistic structure. T
 Create a `.env.local` file in the project root:
 
 ```bash
-# Amadeus Self-Service API (Recommended)
+# Amadeus Self-Service API
 AMADEUS_API_KEY=""
 AMADEUS_API_SECRET=""
-
-# Kiwi (Tequila) API
-KIWI_API_KEY=""
-
-# Skyscanner via RapidAPI
-SKYSCANNER_API_KEY=""
 ```
 
 **Important:** Never commit `.env.local` to version control. It's already in `.gitignore`.
@@ -196,37 +103,33 @@ SKYSCANNER_API_KEY=""
 ## Rate Limit Considerations
 
 ### Best Practices:
-1. **Start with Amadeus** - Best free tier and reliability
+1. **Monitor usage** - Check API dashboard regularly (2,000 calls/month free tier)
 2. **Cache results** - Implement client-side caching for repeated searches
-3. **Monitor usage** - Check API dashboards regularly
-4. **Implement exponential backoff** - For rate limit errors
-5. **Use mock data in development** - Save API calls for production testing
+3. **Implement exponential backoff** - For rate limit errors
+4. **Use mock data in development** - Save API calls for production testing
 
 ### Handling Rate Limits:
-- If primary API hits rate limit, automatically try next API
 - Log rate limit errors for monitoring
-- Show user-friendly message if all APIs are rate-limited
+- Show user-friendly message if rate-limited
+- Fallback to mock data if rate limit exceeded
 - Consider implementing request queuing for high-traffic scenarios
 
 ---
 
-## Supporting Multiple Providers
+## How It Works
 
-The search function (`lib/searchFlights.ts`) implements a fallback chain:
+The search function (`lib/searchFlights.ts`) implements a simple fallback:
 
 1. Try Amadeus API
-2. If fails, try Kiwi API
-3. If fails, try Skyscanner API
-4. If all fail, return mock data
+2. If fails, return mock data
 
-This ensures maximum reliability and uptime.
+This ensures the application remains functional even if the API is unavailable.
 
 ### Error Handling:
-- Network errors: Try next API
-- Authentication errors: Log and try next API
-- Rate limit errors: Try next API
-- Invalid responses: Try next API
-- All APIs fail: Return mock data with warning
+- Network errors: Fallback to mock data
+- Authentication errors: Log and fallback to mock data
+- Rate limit errors: Fallback to mock data
+- Invalid responses: Fallback to mock data
 
 ---
 
@@ -281,7 +184,5 @@ To test if your API keys are working:
 ## Additional Resources
 
 - [Amadeus API Documentation](https://developers.amadeus.com/self-service)
-- [Kiwi API Documentation](https://tequila.kiwi.com/portal/docs/tequila_api)
-- [RapidAPI Skyscanner](https://rapidapi.com/skyscanner/api/skyscanner-flight-search)
 - [Next.js Environment Variables](https://nextjs.org/docs/basic-features/environment-variables)
 
