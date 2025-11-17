@@ -14,6 +14,8 @@ export default function Home() {
   const [results, setResults] = useState<FlightResult[] | null>(null);
   const [searchOrigin, setSearchOrigin] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
+  const [showTop10, setShowTop10] = useState(false);
+  const [allowScroll, setAllowScroll] = useState(false);
   const apiDataRef = useRef<{
     results: FlightResult[] | null;
     error: string | null;
@@ -35,6 +37,8 @@ export default function Home() {
     setResults(null);
     setSearchOrigin(params.origin);
     setIsLoading(true);
+    setShowTop10(false);
+    setAllowScroll(false);
     apiDataRef.current = null;
     searchParamsRef.current = params;
 
@@ -71,8 +75,11 @@ export default function Home() {
     if (apiDataRef.current) {
       if (apiDataRef.current.error) {
         setError(apiDataRef.current.error);
+        setAllowScroll(true); // Allow scroll even on error
       } else {
         setResults(apiDataRef.current.results);
+        // Show top 10 first, then allow scrolling
+        setShowTop10(true);
         // Save search and track analytics if successful
         if (
           apiDataRef.current.results &&
@@ -100,6 +107,13 @@ export default function Home() {
     }
   };
 
+  const handleTop10Displayed = () => {
+    // After top 10 is displayed, allow scrolling
+    setTimeout(() => {
+      setAllowScroll(true);
+    }, 500); // Small delay to ensure animation is visible
+  };
+
   const handleSelectSavedSearch = (savedSearch: SavedSearch) => {
     handleSearch({
       origin: savedSearch.origin,
@@ -110,130 +124,78 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-sky-50">
+    <main 
+      className="min-h-screen bg-gray-50"
+    >
       {isLoading && <LoadingScreen onComplete={handleLoadingComplete} />}
 
-      {/* Hero Section - Above the fold */}
-      <div className="container mx-auto px-4 py-8 md:py-16">
-        <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-8 md:mb-12">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4">
-              SkyRoutes<span className="text-blue-600">AI</span>
-            </h1>
-            <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
-              Where can you fly from your departure city within your budget over
-              the next 1–6 months?
-            </p>
+      <div className="relative z-10">
+        {/* Hero Section */}
+        <div className="relative overflow-hidden min-h-screen flex items-center bg-gradient-to-br from-blue-600 via-purple-600 to-pink-500">
+          {/* Hero Image Background */}
+          <div 
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{
+              backgroundImage: 'url(/hero.png)',
+            }}
+          >
+            {/* Dark overlay for text readability */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50"></div>
           </div>
-
-          {/* Hero Image Placeholder */}
-          {!results && (
-            <div className="mb-8 md:mb-12 rounded-lg overflow-hidden shadow-xl">
-              <img
-                src="https://picsum.photos/1200/400?random=1"
-                alt="Airplane window view"
-                className="w-full h-48 md:h-64 object-cover"
-              />
-            </div>
-          )}
-
-          {/* Saved Searches */}
-          <div className="bg-white rounded-xl shadow-lg p-6 md:p-8 mb-8">
+          
+          {/* Saved Searches - Top right corner */}
+          <div className="absolute top-4 right-4 md:top-6 md:right-6 z-20">
             <SavedSearches onSelectSearch={handleSelectSavedSearch} />
           </div>
 
-          {/* Search Form */}
-          <div className="bg-white rounded-xl shadow-lg p-6 md:p-8 mb-8">
-            <SearchForm onSearch={handleSearch} />
+          {/* Content */}
+          <div className="relative z-10 container mx-auto px-4 py-8 md:py-12 w-full">
+            <div className="max-w-5xl mx-auto">
+              <div className="text-center mb-4 md:mb-6">
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 md:mb-3 leading-tight drop-shadow-lg">
+                  It's time to{' '}
+                  <span className="text-yellow-300">Travel</span>
+                </h1>
+                <p className="text-base md:text-lg lg:text-xl text-white/95 max-w-2xl mx-auto px-2 drop-shadow-md">
+                  Search for amazing flight deals. Discover extraordinary destinations within your budget.
+                </p>
+              </div>
+
+              {/* Search Form Card */}
+              <div className="glass-effect rounded-2xl shadow-2xl p-4 md:p-6 border border-white/30 max-w-2xl mx-auto backdrop-blur-md bg-white/95">
+                <SearchForm onSearch={handleSearch} />
+              </div>
+            </div>
           </div>
+        </div>
 
-          {/* Error Message */}
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-8">
-              <p className="font-semibold">Error</p>
-              <p>{error}</p>
-            </div>
-          )}
+        {/* Results Section */}
+        <div className="container mx-auto px-4 py-12">
+          <div className="max-w-6xl mx-auto">
+            {error && (
+              <div className="bg-red-50 border-2 border-red-200 rounded-xl px-6 py-4 mb-6 shadow-sm">
+                <div className="flex items-start gap-3">
+                  <svg className="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div>
+                    <p className="font-semibold text-red-900 mb-1">Unable to search flights</p>
+                    <p className="text-sm text-red-700">{error}</p>
+                  </div>
+                </div>
+              </div>
+            )}
 
-          {/* Results */}
-          {results && (
-            <div className="bg-white rounded-xl shadow-lg p-6 md:p-8 mb-8">
-              <FlightResults results={results} origin={searchOrigin} />
-            </div>
-          )}
-
-          {/* FAQ Section */}
-          <div className="bg-white rounded-xl shadow-lg p-6 md:p-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
-              Frequently Asked Questions
-            </h2>
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg md:text-xl font-semibold text-gray-800 mb-2">
-                  How does SkyRoutesAI find flights?
-                </h3>
-                <p className="text-gray-600">
-                  SkyRoutesAI searches multiple flight APIs including Amadeus, Kiwi, and Skyscanner to find flights that match your budget and departure city. We show you destinations you can reach within your budget over the next 1-6 months.
-                </p>
+            {results && (
+              <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 border border-gray-100">
+                <FlightResults 
+                  results={results} 
+                  origin={searchOrigin} 
+                  showTop10={showTop10}
+                  onTop10Displayed={handleTop10Displayed}
+                />
               </div>
-              <div>
-                <h3 className="text-lg md:text-xl font-semibold text-gray-800 mb-2">
-                  Where can I fly for $500 from New York?
-                </h3>
-                <p className="text-gray-600">
-                  Simply enter your departure city (or airport code like "JFK" or "NYC"), set your budget to $500, choose your search window (1-6 months), and click search. We'll show you all destinations within your budget.
-                </p>
-              </div>
-              <div>
-                <h3 className="text-lg md:text-xl font-semibold text-gray-800 mb-2">
-                  Are the prices shown final?
-                </h3>
-                <p className="text-gray-600">
-                  Prices shown are base fares. Final totals with taxes and fees may exceed your budget. We're working on showing full cost breakdowns. Always check the airline's website for the final price before booking.
-                </p>
-              </div>
-              <div>
-                <h3 className="text-lg md:text-xl font-semibold text-gray-800 mb-2">
-                  What does "Exclude Basic Economy" mean?
-                </h3>
-                <p className="text-gray-600">
-                  Basic Economy fares often have restrictions like no seat selection, no carry-on bags, and no changes or refunds. When enabled, this option filters out basic economy fares to show only standard economy and above.
-                </p>
-              </div>
-              <div>
-                <h3 className="text-lg md:text-xl font-semibold text-gray-800 mb-2">
-                  Do I need to create an account?
-                </h3>
-                <p className="text-gray-600">
-                  No account required! SkyRoutesAI works entirely in your browser. Your saved searches are stored locally on your device using localStorage.
-                </p>
-              </div>
-              <div>
-                <h3 className="text-lg md:text-xl font-semibold text-gray-800 mb-2">
-                  How do I book a flight?
-                </h3>
-                <p className="text-gray-600">
-                  Click the "Book on airline" link for any flight result. This will take you directly to the airline's website where you can complete your booking. We don't handle bookings or payments.
-                </p>
-              </div>
-              <div>
-                <h3 className="text-lg md:text-xl font-semibold text-gray-800 mb-2">
-                  Why do I see ads during the search?
-                </h3>
-                <p className="text-gray-600">
-                  SkyRoutesAI is free to use and ad-supported. The 10-30 second loading screen helps keep the service free for everyone. You'll see your results after the loading completes.
-                </p>
-              </div>
-              <div>
-                <h3 className="text-lg md:text-xl font-semibold text-gray-800 mb-2">
-                  Can I search for cheap flights from any city?
-                </h3>
-                <p className="text-gray-600">
-                  Yes! Enter any departure city or airport code (like "LAX", "LHR", "CDG") and we'll search for flights from that location. The service works worldwide.
-                </p>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

@@ -10,12 +10,15 @@ interface SavedSearchesProps {
 export default function SavedSearches({ onSelectSearch }: SavedSearchesProps) {
   const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const refreshSearches = () => {
     setSavedSearches(getSavedSearches());
   };
 
   useEffect(() => {
+    // Prevent hydration mismatch by only loading after mount
+    setMounted(true);
     refreshSearches();
     
     // Listen for custom event when searches are saved
@@ -51,19 +54,27 @@ export default function SavedSearches({ onSelectSearch }: SavedSearchesProps) {
     return date.toLocaleDateString();
   };
 
-  if (savedSearches.length === 0) {
+  // Prevent hydration mismatch - don't render until mounted
+  if (!mounted || savedSearches.length === 0) {
     return null;
   }
 
   return (
-    <div className="mb-6">
+    <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-between"
+        className="bg-white/95 backdrop-blur-md border-2 border-white/50 hover:border-white/70 text-gray-800 text-sm font-semibold py-2 px-3 md:py-2.5 md:px-4 rounded-xl transition-all flex items-center gap-2 shadow-lg hover:shadow-xl"
+        title="Saved Searches"
       >
-        <span>Saved Searches ({savedSearches.length})</span>
+        <svg className="w-4 h-4 md:w-5 md:h-5 text-purple-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+        </svg>
+        <span className="hidden sm:inline text-gray-700">Saved</span>
+        <span className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full text-xs font-bold min-w-[20px] text-center">
+          {savedSearches.length}
+        </span>
         <svg
-          className={`w-5 h-5 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          className={`w-4 h-4 text-gray-500 transition-transform duration-300 flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -78,48 +89,53 @@ export default function SavedSearches({ onSelectSearch }: SavedSearchesProps) {
       </button>
 
       {isOpen && (
-        <div className="mt-2 space-y-2">
+        <div className="absolute top-full right-0 mt-2 w-80 md:w-96 max-w-[calc(100vw-2rem)] space-y-2.5 z-50">
           {savedSearches.map((search) => (
             <div
               key={search.id}
-              className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+              className="group bg-white border-2 border-gray-200 rounded-xl p-4 md:p-5 hover:border-purple-300 hover:shadow-lg transition-all cursor-pointer"
               onClick={() => {
                 onSelectSearch(search);
                 setIsOpen(false);
               }}
             >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-semibold text-gray-900">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-baseline gap-2 md:gap-3 flex-wrap mb-2">
+                    <span className="text-xl md:text-2xl font-bold text-gray-900">
                       {search.origin}
                     </span>
-                    <span className="text-sm text-gray-500">•</span>
-                    <span className="text-sm font-medium text-blue-600">
+                    <span className="text-gray-300 text-lg">•</span>
+                    <span className="text-lg md:text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                       ${search.budget}
                     </span>
-                    <span className="text-sm text-gray-500">•</span>
-                    <span className="text-sm text-gray-600">
-                      {search.monthsAhead} {search.monthsAhead === 1 ? 'month' : 'months'}
+                    <span className="text-gray-300 text-lg">•</span>
+                    <span className="text-sm md:text-base text-gray-600 font-medium">
+                      {search.monthsAhead}m ahead
                     </span>
                     {search.excludeBasicEconomy && (
                       <>
-                        <span className="text-sm text-gray-500">•</span>
-                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
-                          No Basic Economy
+                        <span className="text-gray-300 text-lg">•</span>
+                        <span className="bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 px-2.5 py-1 rounded-full text-xs font-bold border border-purple-200">
+                          Premium
                         </span>
                       </>
                     )}
                   </div>
-                  <p className="text-xs text-gray-500">{formatDate(search.timestamp)}</p>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p className="text-xs text-gray-500 font-medium">{formatDate(search.timestamp)}</p>
+                  </div>
                 </div>
                 <button
                   onClick={(e) => handleDelete(search.id, e)}
-                  className="ml-4 text-red-500 hover:text-red-700 p-1"
+                  className="opacity-60 group-hover:opacity-100 text-gray-400 hover:text-red-600 p-2 flex-shrink-0 rounded-lg hover:bg-red-50 transition-all"
                   aria-label="Delete saved search"
                 >
                   <svg
-                    className="w-5 h-5"
+                    className="w-4 h-4 md:w-5 md:h-5"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
