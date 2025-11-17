@@ -27,13 +27,13 @@ SkyRoutesAI answers: "Where can I fly from my departure city within my budget ov
 ---
 
 ## PHASE 2 – Core Layout & Theming
-- [ ] Build above-the-fold hero (desktop + mobile)
-- [ ] Inputs: budget, departure, monthsAhead selector (1–6), excludeBasicEconomy toggle
-- [ ] Add fee/tax disclaimer text
-- [ ] Add placeholder hero imagery
-- [ ] Create design/image-prompts.md
+- [x] Build above-the-fold hero (desktop + mobile)
+- [x] Inputs: budget, departure, monthsAhead selector (1–6), excludeBasicEconomy toggle
+- [x] Add fee/tax disclaimer text
+- [x] Add placeholder hero imagery
+- [x] Create design/image-prompts.md
 
-**Status:** Pending
+**Status:** Complete
 
 ---
 
