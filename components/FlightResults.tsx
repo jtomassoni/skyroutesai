@@ -50,7 +50,7 @@ export default function FlightResults({ results, origin }: FlightResultsProps) {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {results.map((flight, index) => (
           <div
-            key={`${flight.destinationCode}-${index}`}
+            key={`${flight.destinationCode || flight.destination || 'flight'}-${index}-${flight.price}`}
             className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6 border border-gray-200"
           >
             <div className="flex justify-between items-start mb-4">

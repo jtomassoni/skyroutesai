@@ -11,8 +11,23 @@ export default function SavedSearches({ onSelectSearch }: SavedSearchesProps) {
   const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
   const [isOpen, setIsOpen] = useState(false);
 
-  useEffect(() => {
+  const refreshSearches = () => {
     setSavedSearches(getSavedSearches());
+  };
+
+  useEffect(() => {
+    refreshSearches();
+    
+    // Listen for custom event when searches are saved
+    const handleStorageChange = () => {
+      refreshSearches();
+    };
+    
+    window.addEventListener('skyroutesai:searchSaved', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('skyroutesai:searchSaved', handleStorageChange);
+    };
   }, []);
 
   const handleDelete = (id: string, e: React.MouseEvent) => {

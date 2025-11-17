@@ -44,6 +44,10 @@ export function saveSearch(search: Omit<SavedSearch, 'id' | 'timestamp'>): Saved
 
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(limitedSearches));
+    // Dispatch custom event to notify components
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('skyroutesai:searchSaved'));
+    }
     return newSearch;
   } catch (error) {
     console.error('Error saving search:', error);
@@ -61,6 +65,10 @@ export function deleteSavedSearch(id: string): void {
 
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+    // Dispatch custom event to notify components
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('skyroutesai:searchSaved'));
+    }
   } catch (error) {
     console.error('Error deleting saved search:', error);
   }

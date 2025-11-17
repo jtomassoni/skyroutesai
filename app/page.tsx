@@ -39,7 +39,7 @@ export default function Home() {
     searchParamsRef.current = params;
 
     // Start API call in parallel
-    const apiCall = fetch('/api/search-flights', {
+    fetch('/api/search-flights', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
