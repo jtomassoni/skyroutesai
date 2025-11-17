@@ -4,7 +4,9 @@ import { useState, useRef } from 'react';
 import SearchForm from '@/components/SearchForm';
 import LoadingScreen from '@/components/LoadingScreen';
 import FlightResults from '@/components/FlightResults';
+import SavedSearches from '@/components/SavedSearches';
 import { FlightResult } from '@/lib/searchFlights';
+import { saveSearch, SavedSearch } from '@/lib/localStorage';
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
@@ -14,6 +16,12 @@ export default function Home() {
   const apiDataRef = useRef<{
     results: FlightResult[] | null;
     error: string | null;
+  } | null>(null);
+  const searchParamsRef = useRef<{
+    origin: string;
+    maxBudget: number;
+    monthsAhead: number;
+    excludeBasicEconomy: boolean;
   } | null>(null);
 
   const handleSearch = async (params: {
@@ -27,6 +35,7 @@ export default function Home() {
     setSearchOrigin(params.origin);
     setIsLoading(true);
     apiDataRef.current = null;
+    searchParamsRef.current = params;
 
     // Start API call in parallel
     const apiCall = fetch('/api/search-flights', {
@@ -63,8 +72,35 @@ export default function Home() {
         setError(apiDataRef.current.error);
       } else {
         setResults(apiDataRef.current.results);
+        // Save search if successful
+        if (
+          apiDataRef.current.results &&
+          apiDataRef.current.results.length > 0 &&
+          searchParamsRef.current
+        ) {
+          try {
+            saveSearch({
+              origin: searchParamsRef.current.origin,
+              budget: searchParamsRef.current.maxBudget,
+              monthsAhead: searchParamsRef.current.monthsAhead,
+              excludeBasicEconomy: searchParamsRef.current.excludeBasicEconomy,
+            });
+          } catch (error) {
+            // Silently fail - saving search is not critical
+            console.error('Failed to save search:', error);
+          }
+        }
       }
     }
+  };
+
+  const handleSelectSavedSearch = (savedSearch: SavedSearch) => {
+    handleSearch({
+      origin: savedSearch.origin,
+      maxBudget: savedSearch.budget,
+      monthsAhead: savedSearch.monthsAhead,
+      excludeBasicEconomy: savedSearch.excludeBasicEconomy,
+    });
   };
 
   return (
@@ -95,6 +131,11 @@ export default function Home() {
               />
             </div>
           )}
+
+          {/* Saved Searches */}
+          <div className="bg-white rounded-xl shadow-lg p-6 md:p-8 mb-8">
+            <SavedSearches onSelectSearch={handleSelectSavedSearch} />
+          </div>
 
           {/* Search Form */}
           <div className="bg-white rounded-xl shadow-lg p-6 md:p-8 mb-8">

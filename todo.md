@@ -64,14 +64,14 @@ SkyRoutesAI answers: "Where can I fly from my departure city within my budget ov
 ---
 
 ## PHASE 5 – Saved Searches via LocalStorage
-- [ ] LocalStorage helpers
-- [ ] Save search data (origin, budget, monthsAhead, excludeBasicEconomy)
-- [ ] Saved Searches UI:
-  - [ ] List
-  - [ ] Re-run
-  - [ ] Delete
+- [x] LocalStorage helpers
+- [x] Save search data (origin, budget, monthsAhead, excludeBasicEconomy)
+- [x] Saved Searches UI:
+  - [x] List
+  - [x] Re-run
+  - [x] Delete
 
-**Status:** Pending
+**Status:** Complete
 
 ---
 
