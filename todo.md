@@ -51,15 +51,15 @@ SkyRoutesAI answers: "Where can I fly from my departure city within my budget ov
 ---
 
 ## PHASE 4 – Search UX + Ad Loading Experience
-- [ ] Connect form → API
-- [ ] Create 10–30s loading with:
-  - [ ] Animation
-  - [ ] Placeholder ads
-  - [ ] Message about ads funding the service
-- [ ] Show results list/grid
-- [ ] CTA links to airline sites
+- [x] Connect form → API
+- [x] Create 10–30s loading with:
+  - [x] Animation
+  - [x] Placeholder ads
+  - [x] Message about ads funding the service
+- [x] Show results list/grid
+- [x] CTA links to airline sites
 
-**Status:** Pending
+**Status:** Complete
 
 ---
 
