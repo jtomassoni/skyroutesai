@@ -76,10 +76,10 @@ SkyRoutesAI answers: "Where can I fly from my departure city within my budget ov
 ---
 
 ## PHASE 6 – Local Analytics
-- [ ] Track local-only stats via localStorage
-- [ ] Local-only "Stats" dev view
+- [x] Track local-only stats via localStorage
+- [x] Local-only "Stats" dev view
 
-**Status:** Pending
+**Status:** Complete
 
 ---
 

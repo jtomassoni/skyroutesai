@@ -7,6 +7,7 @@ import FlightResults from '@/components/FlightResults';
 import SavedSearches from '@/components/SavedSearches';
 import { FlightResult } from '@/lib/searchFlights';
 import { saveSearch, SavedSearch } from '@/lib/localStorage';
+import { trackSearch } from '@/lib/analytics';
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
@@ -72,7 +73,7 @@ export default function Home() {
         setError(apiDataRef.current.error);
       } else {
         setResults(apiDataRef.current.results);
-        // Save search if successful
+        // Save search and track analytics if successful
         if (
           apiDataRef.current.results &&
           apiDataRef.current.results.length > 0 &&
@@ -85,6 +86,11 @@ export default function Home() {
               monthsAhead: searchParamsRef.current.monthsAhead,
               excludeBasicEconomy: searchParamsRef.current.excludeBasicEconomy,
             });
+            // Track analytics
+            trackSearch(
+              searchParamsRef.current.origin,
+              searchParamsRef.current.maxBudget
+            );
           } catch (error) {
             // Silently fail - saving search is not critical
             console.error('Failed to save search:', error);
