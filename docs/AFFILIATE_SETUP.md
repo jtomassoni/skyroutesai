@@ -3,11 +3,11 @@
 ## Quick Start - TravelPayouts (Recommended)
 
 **Why TravelPayouts?**
-- ✅ Easy signup (usually approved in 1-2 days)
-- ✅ Aggregates multiple travel sites (Skyscanner, Aviasales, etc.)
-- ✅ Good commission rates (2-8% on bookings)
-- ✅ Works with flight searches
-- ✅ No minimum traffic requirements
+- Easy signup (usually approved in 1-2 days)
+- Aggregates multiple travel sites (Skyscanner, Aviasales, etc.)
+- Good commission rates (2-8% on bookings)
+- Works with flight searches
+- No minimum traffic requirements
 
 ### Setup Steps:
 
