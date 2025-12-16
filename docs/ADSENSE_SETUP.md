@@ -28,7 +28,14 @@
    - Replace `YOUR_AD_SLOT_ID` with your actual ad slot ID
    - Or use the environment variable: `process.env.NEXT_PUBLIC_ADSENSE_AD_SLOT_LOADING`
 
-5. **Restart Your Dev Server**
+5. **Create ads.txt File (REQUIRED)**
+   - The `ads.txt` file has been created in `/public/ads.txt`
+   - This file authorizes Google AdSense to serve ads on your site
+   - It contains: `google.com, pub-3373780887120786, DIRECT, f08c47fec0942fa0`
+   - After deploying, verify it's accessible at: `https://skyroutesai.com/ads.txt`
+   - AdSense will automatically crawl this file (may take 24-48 hours)
+
+6. **Restart Your Dev Server**
    ```bash
    npm run dev
    ```
@@ -51,7 +58,43 @@
 
 ## Troubleshooting
 
-- **Ads not showing?** Check browser console for errors
-- **Placeholder still showing?** Make sure `.env.local` is configured correctly
-- **AdSense not approved yet?** The placeholder will show until approval
+### Ads Not Showing in Local Development
+**This is expected behavior!** Google AdSense does **not** serve ads on localhost (localhost, 127.0.0.1, or [::1]). This is a security feature by Google.
+
+**To verify ads are working:**
+1. Deploy to production (skyroutesai.com)
+2. Visit your production site
+3. Ads should display automatically once AdSense is approved
+
+The component will show a helpful message in local development indicating ads won't display locally.
+
+### Other Issues
+
+- **Ads not showing in production?** 
+  - Check browser console for errors
+  - Verify AdSense account is approved
+  - Ensure `ads.txt` is accessible at `https://skyroutesai.com/ads.txt`
+  - Check AdSense dashboard for any policy violations
+
+- **Placeholder still showing?** 
+  - Make sure `.env.local` is configured correctly (though hardcoded values are used)
+  - Check that the AdSense script is loading (check Network tab)
+
+- **AdSense not approved yet?** 
+  - The placeholder will show until approval
+  - Approval typically takes 1-2 weeks
+
+- **ads.txt not found?** 
+  - Verify the file exists at `/public/ads.txt` in your project
+  - After deploying, check that `https://skyroutesai.com/ads.txt` is accessible
+  - AdSense crawls ads.txt every 24-48 hours, so changes may take time to reflect
+  - In AdSense dashboard, go to "Sites" → "ads.txt" to check status
+
+### Verification Checklist
+
+✅ AdSense account approved  
+✅ `ads.txt` file deployed and accessible at `https://skyroutesai.com/ads.txt`  
+✅ AdSense script loaded in `app/layout.tsx`  
+✅ Ad component properly initialized  
+✅ Testing on production domain (not localhost)
 

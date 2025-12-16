@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 interface AdSenseProps {
   adSlot?: string;
@@ -21,35 +21,65 @@ export default function AdSense({
   showPlaceholder = true
 }: AdSenseProps) {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const initializedRef = useRef(false);
+  const adElementId = useRef(`adsense-${Math.random().toString(36).substr(2, 9)}`);
+  const isLocalhost = typeof window !== 'undefined' && (
+    window.location.hostname === 'localhost' || 
+    window.location.hostname === '127.0.0.1' ||
+    window.location.hostname === '[::1]'
+  );
 
   useEffect(() => {
-    // Check if script already exists
-    if (document.querySelector('script[src*="adsbygoogle"]')) {
+    // Check if script already exists (loaded in layout.tsx)
+    const existingScript = document.querySelector('script[src*="adsbygoogle"]');
+    if (existingScript) {
       setIsLoaded(true);
       return;
     }
 
-    // Load Google AdSense script
+    // Fallback: Load script if not already loaded
     const script = document.createElement('script');
     script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${AD_CLIENT}`;
     script.async = true;
     script.crossOrigin = 'anonymous';
     script.onload = () => setIsLoaded(true);
+    script.onerror = () => {
+      console.warn('AdSense script failed to load');
+    };
     document.head.appendChild(script);
   }, []);
 
   useEffect(() => {
-    if (!isLoaded) return;
+    // Wait for script to load and element to be in DOM
+    if (!isLoaded || initializedRef.current) return;
 
-    try {
-      // Initialize ad
-      ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
-    } catch (err) {
-      console.error('AdSense error:', err);
-    }
-  }, [isLoaded, adSlot]);
+    // Use setTimeout to ensure DOM is ready
+    const timer = setTimeout(() => {
+      const adElement = document.getElementById(adElementId.current);
+      if (!adElement) {
+        console.warn('AdSense element not found in DOM');
+        return;
+      }
 
-  // Show placeholder if ads haven't loaded yet
+      try {
+        // Initialize ad - this must happen after the <ins> element is rendered
+        ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
+        initializedRef.current = true;
+        setIsInitialized(true);
+        
+        if (isLocalhost) {
+          console.log('AdSense initialized. Note: Ads do not display on localhost. They will work on production (skyroutesai.com).');
+        }
+      } catch (err) {
+        console.error('AdSense initialization error:', err);
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [isLoaded, adSlot, isLocalhost]);
+
+  // Show placeholder if script hasn't loaded yet
   if (!isLoaded && showPlaceholder) {
     return (
       <div className={`flex items-center justify-center ${className}`} style={style}>
@@ -77,17 +107,26 @@ export default function AdSense({
   }
 
   return (
-    <ins
-      className={`adsbygoogle ${className}`}
-      style={{
-        display: 'block',
-        ...style,
-      }}
-      data-ad-client={AD_CLIENT}
-      data-ad-slot={adSlot}
-      data-ad-format={adFormat}
-      data-full-width-responsive="true"
-    />
+    <>
+      <ins
+        id={adElementId.current}
+        className={`adsbygoogle ${className}`}
+        style={{
+          display: 'block',
+          minHeight: '250px',
+          ...style,
+        }}
+        data-ad-client={AD_CLIENT}
+        data-ad-slot={adSlot}
+        data-ad-format={adFormat}
+        data-full-width-responsive="true"
+      />
+      {isLocalhost && isInitialized && (
+        <div className="text-xs text-white/50 text-center mt-2 italic">
+          (Ads don't display on localhost - will work on production)
+        </div>
+      )}
+    </>
   );
 }
 
