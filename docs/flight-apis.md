@@ -1,11 +1,10 @@
 # Flight APIs Integration Guide
 
-SkyRoutesAI uses the Amadeus Self-Service API for real flight data, with mock data as a fallback. This document provides instructions for obtaining API keys and configuring the provider.
+SkyRoutesAI uses the **Amadeus Self-Service API** for real flight data. **Mock data has been removed** - the application requires valid API credentials to function.
 
 ## API Setup
 
-1. **Amadeus Self-Service API** (Primary)
-2. **Mock Data** (Fallback if API fails or keys are missing)
+**Amadeus Self-Service API** (Required - no fallback)
 
 ---
 
@@ -57,32 +56,8 @@ SkyRoutesAI uses the Amadeus Self-Service API for real flight data, with mock da
 - Requires OAuth 2.0 token authentication
 - Token expires after 30 minutes (auto-refresh implemented)
 - Best coverage for international flights
-
----
-
-## Mock Data Fallback
-
-If all APIs fail, the system falls back to mock data with realistic structure. This ensures the application remains functional during development and API outages.
-
-### Mock Data Structure
-```typescript
-{
-  destination: string;
-  price: number;
-  currency: string;
-  date: string;
-  dateRange?: string;
-  airline: string;
-  fareClass?: string;
-  bookingUrl: string;
-}
-```
-
-### When Mock Data is Used
-- API keys are missing
-- API calls fail
-- Rate limits exceeded
-- Network errors
+- **Production API endpoint** (`api.amadeus.com`) is used
+- **API credentials are required** - the application will not function without them
 
 ---
 
@@ -106,7 +81,7 @@ AMADEUS_API_SECRET=""
 1. **Monitor usage** - Check API dashboard regularly (2,000 calls/month free tier)
 2. **Cache results** - Implement client-side caching for repeated searches
 3. **Implement exponential backoff** - For rate limit errors
-4. **Use mock data in development** - Save API calls for production testing
+4. **Keep API keys secure** - Never commit keys to version control
 
 ### Handling Rate Limits:
 - Log rate limit errors for monitoring
@@ -118,18 +93,19 @@ AMADEUS_API_SECRET=""
 
 ## How It Works
 
-The search function (`lib/searchFlights.ts`) implements a simple fallback:
+The search function (`lib/searchFlights.ts`) uses the Amadeus API exclusively:
 
-1. Try Amadeus API
-2. If fails, return mock data
-
-This ensures the application remains functional even if the API is unavailable.
+1. Validates API credentials are configured
+2. Authenticates with Amadeus API
+3. Searches for flight destinations within budget
+4. Retrieves detailed flight offers for each destination
+5. Returns real flight data
 
 ### Error Handling:
-- Network errors: Fallback to mock data
-- Authentication errors: Log and fallback to mock data
-- Rate limit errors: Fallback to mock data
-- Invalid responses: Fallback to mock data
+- **Missing API keys**: Returns clear error message
+- **Authentication failures**: Returns user-friendly error
+- **API errors**: Returns descriptive error with details (in development)
+- **No results**: Returns empty array (not an error)
 
 ---
 

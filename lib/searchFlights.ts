@@ -8,7 +8,7 @@ export interface FlightResult {
   airline: string;
   fareClass?: string;
   bookingUrl: string;
-  source: 'amadeus' | 'mock';
+  source: 'amadeus';
   fareClassNote?: string;
 }
 
@@ -54,76 +54,24 @@ function filterBasicEconomy(
   });
 }
 
-// Mock data generator for fallback
-function generateMockData(params: SearchParams): FlightResult[] {
-  const destinations = [
-    { city: 'Paris', code: 'CDG', basePrice: 450 },
-    { city: 'London', code: 'LHR', basePrice: 500 },
-    { city: 'Tokyo', code: 'NRT', basePrice: 800 },
-    { city: 'Barcelona', code: 'BCN', basePrice: 400 },
-    { city: 'Rome', code: 'FCO', basePrice: 420 },
-    { city: 'Amsterdam', code: 'AMS', basePrice: 480 },
-    { city: 'Berlin', code: 'BER', basePrice: 460 },
-    { city: 'Dubai', code: 'DXB', basePrice: 750 },
-  ];
-
-  const airlines = ['American Airlines', 'Delta', 'United', 'Lufthansa', 'British Airways'];
-  const fareClasses = ['Economy', 'Premium Economy', 'Business', 'Basic Economy', 'E'];
-
-  const results: FlightResult[] = [];
-  const today = new Date();
-  const maxDate = new Date(today);
-  maxDate.setMonth(today.getMonth() + params.monthsAhead);
-
-  destinations.forEach((dest) => {
-    // Vary price within budget
-    const priceVariation = Math.random() * 0.3; // ±30% variation
-    const price = Math.min(
-      dest.basePrice * (1 - priceVariation),
-      params.maxBudget
-    );
-
-    if (price > params.maxBudget * 0.5) {
-      // Only include if price is reasonable
-      const randomDate = new Date(
-        today.getTime() +
-          Math.random() * (maxDate.getTime() - today.getTime())
-      );
-      const fareClass =
-        fareClasses[Math.floor(Math.random() * fareClasses.length)];
-
-      results.push({
-        destination: dest.city,
-        destinationCode: dest.code,
-        price: Math.round(price),
-        currency: 'USD',
-        date: randomDate.toISOString().split('T')[0],
-        airline: airlines[Math.floor(Math.random() * airlines.length)],
-        fareClass,
-        bookingUrl: `https://example.com/book/${dest.code}`,
-        source: 'mock',
-      });
-    }
-  });
-
-  return filterBasicEconomy(results, params.excludeBasicEconomy);
-}
 
 // Amadeus API implementation
 async function searchAmadeus(
   params: SearchParams
-): Promise<FlightResult[] | null> {
+): Promise<FlightResult[]> {
   const apiKey = process.env.AMADEUS_API_KEY;
   const apiSecret = process.env.AMADEUS_API_SECRET;
 
   if (!apiKey || !apiSecret) {
-    return null;
+    throw new Error(
+      'Amadeus API credentials are not configured. Please set AMADEUS_API_KEY and AMADEUS_API_SECRET environment variables.'
+    );
   }
 
   try {
     // Step 1: Get OAuth token
     const tokenResponse = await fetch(
-      'https://test.api.amadeus.com/v1/security/oauth2/token',
+      'https://api.amadeus.com/v1/security/oauth2/token',
       {
         method: 'POST',
         headers: {
@@ -138,11 +86,18 @@ async function searchAmadeus(
     );
 
     if (!tokenResponse.ok) {
-      return null;
+      const errorText = await tokenResponse.text();
+      throw new Error(
+        `Failed to authenticate with Amadeus API: ${tokenResponse.status} ${errorText}`
+      );
     }
 
     const tokenData = await tokenResponse.json();
     const accessToken = tokenData.access_token;
+
+    if (!accessToken) {
+      throw new Error('Failed to obtain access token from Amadeus API');
+    }
 
     // Step 2: Search flight destinations
     const today = new Date();
@@ -150,7 +105,7 @@ async function searchAmadeus(
     maxDate.setMonth(today.getMonth() + params.monthsAhead);
 
     const searchUrl = new URL(
-      'https://test.api.amadeus.com/v1/shopping/flight-destinations'
+      'https://api.amadeus.com/v1/shopping/flight-destinations'
     );
     searchUrl.searchParams.set('origin', params.origin.toUpperCase());
     searchUrl.searchParams.set('maxPrice', params.maxBudget.toString());
@@ -166,17 +121,21 @@ async function searchAmadeus(
     });
 
     if (!searchResponse.ok) {
-      return null;
+      const errorText = await searchResponse.text();
+      throw new Error(
+        `Amadeus API search failed: ${searchResponse.status} ${errorText}`
+      );
     }
 
     const searchData = await searchResponse.json();
     const results: FlightResult[] = [];
 
-    if (searchData.data) {
+    if (searchData.data && searchData.data.length > 0) {
+      // Limit to first 20 destinations to avoid too many API calls
       for (const item of searchData.data.slice(0, 20)) {
         // Get detailed offers for each destination
         const offersUrl = new URL(
-          'https://test.api.amadeus.com/v1/shopping/flight-offers'
+          'https://api.amadeus.com/v1/shopping/flight-offers'
         );
         offersUrl.searchParams.set('originLocationCode', params.origin.toUpperCase());
         offersUrl.searchParams.set('destinationLocationCode', item.destination);
@@ -217,25 +176,25 @@ async function searchAmadeus(
       }
     }
 
-    return filterBasicEconomy(results, params.excludeBasicEconomy);
+    const filteredResults = filterBasicEconomy(results, params.excludeBasicEconomy);
+    
+    if (filteredResults.length === 0) {
+      console.log('✅ Amadeus API search completed - no flights found within budget');
+    } else {
+      console.log(`✅ Amadeus API search completed - found ${filteredResults.length} flights`);
+    }
+    
+    return filteredResults;
   } catch (error) {
-    console.error('Amadeus API error:', error);
-    return null;
+    console.error('❌ Amadeus API error:', error);
+    throw error;
   }
 }
 
-// Main search function with fallback
+// Main search function - uses real Amadeus API only
 export async function searchFlights(
   params: SearchParams
 ): Promise<FlightResult[]> {
-  // Try Amadeus API first
-  const results = await searchAmadeus(params);
-  if (results && results.length > 0) {
-    return results;
-  }
-
-  // Fallback to mock data if Amadeus fails
-  console.warn('Amadeus API failed, using mock data');
-  return generateMockData(params);
+  return await searchAmadeus(params);
 }
 

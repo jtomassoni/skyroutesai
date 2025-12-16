@@ -63,10 +63,23 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Search flights API error:', error);
+    
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    
+    // Provide user-friendly error messages
+    let userMessage = 'Unable to search for flights at this time.';
+    if (errorMessage.includes('API credentials are not configured')) {
+      userMessage = 'Flight search service is not configured. Please contact support.';
+    } else if (errorMessage.includes('Failed to authenticate')) {
+      userMessage = 'Flight search service authentication failed. Please try again later.';
+    } else if (errorMessage.includes('API search failed')) {
+      userMessage = 'No flights found for your search criteria. Try adjusting your budget or departure city.';
+    }
+    
     return NextResponse.json(
       {
-        error: 'An error occurred while searching for flights',
-        details: error instanceof Error ? error.message : 'Unknown error',
+        error: userMessage,
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
       },
       { status: 500 }
     );

@@ -42,9 +42,11 @@ Find flights within your budget from your departure city over the next 1-6 month
 
 ## API Keys
 
-This project uses the Amadeus Self-Service API for real flight data, with mock data as a fallback:
-- Amadeus Self-Service API (primary)
-- Mock data (fallback if API fails)
+This project uses the **Amadeus Self-Service API** for real flight data. API credentials are required - the application will not function without them.
+
+**Required environment variables:**
+- `AMADEUS_API_KEY` - Your Amadeus API key (Client ID)
+- `AMADEUS_API_SECRET` - Your Amadeus API secret (Client Secret)
 
 See `docs/flight-apis.md` for detailed setup instructions.
 
