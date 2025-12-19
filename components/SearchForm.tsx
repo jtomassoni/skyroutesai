@@ -1,7 +1,10 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
 import { searchAirports, validateAirport, type Airport } from '@/lib/airports';
+import { useAuth } from '@/lib/authContext';
+import { FaExclamationCircle } from 'react-icons/fa';
 
 interface SearchFormProps {
   onSearch: (params: {
@@ -13,6 +16,7 @@ interface SearchFormProps {
 }
 
 export default function SearchForm({ onSearch }: SearchFormProps) {
+  const { user, isLoading: authLoading } = useAuth();
   const [origin, setOrigin] = useState('');
   const [maxBudget, setMaxBudget] = useState('');
   const [monthsAhead, setMonthsAhead] = useState(3);
@@ -105,6 +109,16 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="w-full space-y-4 md:space-y-5">
+      {!authLoading && !user && (
+        <div className="bg-blue-50 border-2 border-blue-300 rounded-xl p-3 md:p-4 mb-2">
+          <div className="flex items-start gap-2">
+            <FaExclamationCircle className="text-blue-600 text-sm md:text-base flex-shrink-0 mt-0.5" />
+            <p className="text-xs md:text-sm text-blue-800">
+              <strong>Note:</strong> You'll see sample results. <Link href="/signup" className="underline font-semibold hover:text-blue-900">Sign up free</Link> for real-time flight data.
+            </p>
+          </div>
+        </div>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 lg:gap-6">
         <div className="space-y-2 md:space-y-3">
           <label htmlFor="origin" className="block text-sm font-semibold text-gray-800">

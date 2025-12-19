@@ -32,15 +32,29 @@ export function saveSearch(search: Omit<SavedSearch, 'id' | 'timestamp'>): Saved
   }
 
   const savedSearches = getSavedSearches();
+
+  // Remove any existing search with the same parameters to avoid duplicates
+  const dedupedSearches = savedSearches.filter(
+    (s) =>
+      !(
+        s.origin.toUpperCase() === search.origin.toUpperCase() &&
+        s.budget === search.budget &&
+        s.monthsAhead === search.monthsAhead &&
+        s.excludeBasicEconomy === search.excludeBasicEconomy
+      )
+  );
+
   const newSearch: SavedSearch = {
     ...search,
     id: `search_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     timestamp: Date.now(),
   };
 
-  savedSearches.unshift(newSearch); // Add to beginning
+  // Add new search to the beginning, after de-duplication
+  dedupedSearches.unshift(newSearch);
+
   // Keep only the last 20 searches
-  const limitedSearches = savedSearches.slice(0, 20);
+  const limitedSearches = dedupedSearches.slice(0, 20);
 
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(limitedSearches));

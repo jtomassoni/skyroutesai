@@ -41,7 +41,13 @@ SkyRoutesAI uses the **Amadeus Self-Service API** for real flight data. **Mock d
    ```bash
    AMADEUS_API_KEY="your_api_key_here"
    AMADEUS_API_SECRET="your_api_secret_here"
+   AMADEUS_API_ENV="test"  # Use "test" for test credentials, "production" for production (default: "production")
    ```
+   
+   **Important:** 
+   - Use `AMADEUS_API_ENV="test"` when using test credentials from the Amadeus developer portal
+   - Use `AMADEUS_API_ENV="production"` (or omit) when using production credentials
+   - Test credentials use `test.api.amadeus.com`, production uses `api.amadeus.com`
 
 ### API Endpoints Used
 - **Flight Inspiration Search:** `/v1/shopping/flight-destinations`
@@ -56,7 +62,10 @@ SkyRoutesAI uses the **Amadeus Self-Service API** for real flight data. **Mock d
 - Requires OAuth 2.0 token authentication
 - Token expires after 30 minutes (auto-refresh implemented)
 - Best coverage for international flights
-- **Production API endpoint** (`api.amadeus.com`) is used
+- **API endpoints:** 
+  - Test: `test.api.amadeus.com` (use with test credentials)
+  - Production: `api.amadeus.com` (use with production credentials)
+- Set `AMADEUS_API_ENV="test"` to use test environment, or `"production"` (default) for production
 - **API credentials are required** - the application will not function without them
 
 ---
@@ -69,6 +78,7 @@ Create a `.env.local` file in the project root:
 # Amadeus Self-Service API
 AMADEUS_API_KEY=""
 AMADEUS_API_SECRET=""
+AMADEUS_API_ENV="test"  # or "production" for production credentials
 ```
 
 **Important:** Never commit `.env.local` to version control. It's already in `.gitignore`.

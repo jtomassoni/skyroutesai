@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 import Footer from "@/components/Footer";
+import JsonLd from "@/components/JsonLd";
+import AuthProviderWrapper from "@/components/AuthProviderWrapper";
 
 export const metadata: Metadata = {
-  title: "SkyRoutesAI - Find Flights Within Your Budget",
-  description: "Discover where you can fly from your departure city within your budget over the next 1-6 months. AI-powered flight finder.",
+  title: "SkyRoutesAI - Coming Soon",
+  description: "Something new is on the way.",
   keywords: [
     "AI flight finder",
     "cheap flights",
@@ -16,8 +19,8 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "SkyRoutesAI" }],
   openGraph: {
-    title: "SkyRoutesAI - Find Flights Within Your Budget",
-    description: "Discover where you can fly from your departure city within your budget over the next 1-6 months. AI-powered flight finder.",
+    title: "SkyRoutesAI - Coming Soon",
+    description: "Something new is on the way.",
     url: "https://skyroutesai.com",
     siteName: "SkyRoutesAI",
     locale: "en_US",
@@ -33,8 +36,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "SkyRoutesAI - Find Flights Within Your Budget",
-    description: "Discover where you can fly from your departure city within your budget over the next 1-6 months.",
+    title: "SkyRoutesAI - Coming Soon",
+    description: "Something new is on the way.",
     images: ["https://skyroutesai.com/og-image.jpg"],
   },
   robots: {
@@ -76,26 +79,24 @@ export default function RootLayout({
       "1-6 month search window",
       "Basic economy filtering",
       "Saved searches",
-      "No account required",
+      "Free account for real-time data",
     ],
   };
 
   return (
     <html lang="en">
-      <head>
-        {/* Google AdSense */}
-        <script
-          async
+      <body suppressHydrationWarning>
+        {/* JSON-LD structured data - added via client component to avoid hydration issues */}
+        <JsonLd data={jsonLd} />
+        {/* Google AdSense - Disabled for coming soon page */}
+        {/* <Script
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3373780887120786"
+          strategy="afterInteractive"
           crossOrigin="anonymous"
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
-      </head>
-      <body>
-        {children}
+        /> */}
+        <AuthProviderWrapper>
+          {children}
+        </AuthProviderWrapper>
         <Footer />
       </body>
     </html>
